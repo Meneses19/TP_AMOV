@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523402485992",
+    "project_id": "amov-tp-3ed30",
+    "storage_bucket": "amov-tp-3ed30.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523402485992:android:ce43d2aa8e32200566295d",
+        "android_client_info": {
+          "package_name": "pt.isec.amov.safetysec"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB17LwNg7vw_tad39Wqb9ffTIgeaUWZX8I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
