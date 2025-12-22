@@ -11,7 +11,7 @@ import pt.isec.amov.safetysec.model.UserType
 import pt.isec.amov.safetysec.ui.screens.auth.LoginScreen
 import pt.isec.amov.safetysec.ui.screens.auth.RegisterScreen
 import pt.isec.amov.safetysec.ui.screens.monitor.MonitorDashboard
-import pt.isec.amov.safetysec.ui.screens.protected.ProtegidoDashboard
+import pt.isec.amov.safetysec.ui.screens.protegido.ProtegidoDashboard
 import pt.isec.amov.safetysec.ui.theme.SafetySecTheme
 import pt.isec.amov.safetysec.ui.viewmodels.AuthViewModel
 
@@ -51,19 +51,13 @@ class MainActivity : ComponentActivity() {
                         RegisterScreen(navController, authViewModel)
                     }
 
-                    // Rota 3: Dashboard do Monitor
                     composable("monitorHome") {
-                        MonitorDashboard(navController, authViewModel)
+                        MonitorDashboard(navController)
                     }
-
-                    // Rota 4: Dashboard do Protegido
                     composable("protectedHome") {
-                        ProtegidoDashboard(navController, authViewModel)
+                        ProtegidoDashboard(navController)
                     }
                 }
-
-                // --- REDIRECIONAMENTO AUTOMÁTICO (Efeito Secundário) ---
-                // Se o utilizador fizer login com sucesso, muda de ecrã automaticamente
                 if (isLoggedIn && userType != UserType.NONE) {
                     val targetRoute = if (userType == UserType.MONITOR) "monitorHome" else "protectedHome"
 
