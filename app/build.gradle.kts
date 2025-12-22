@@ -64,4 +64,5 @@ dependencies {
     //implementation("org.osmdroid:osmdroid-android:6.1.18")
     //implementation("org.osmdroid:osmdroid-compose:0.0.5")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc02")
+    implementation("androidx.compose.material:material-icons-extended")
 }

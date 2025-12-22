@@ -12,7 +12,7 @@ class FAuthUtil {
     // Devolve o utilizador atual (ou null se não estiver logado)
     val currentUser get() = auth.currentUser
 
-    // REGISTO: Cria conta no Auth E guarda dados na Firestore
+    // REGISTO
     fun register(
         email: String,
         pass: String,
@@ -53,5 +53,20 @@ class FAuthUtil {
         db.collection("Users").document(user.id).set(user)
             .addOnSuccessListener { onResult(true, null) }
             .addOnFailureListener { e -> onResult(false, "Erro DB: ${e.message}") }
+    }
+
+    fun getUserData(idUtilizador: String, onResult: (User?) -> Unit) {
+        db.collection("Users").document(idUtilizador).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    onResult(user)
+                } else {
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener {
+                onResult(null)
+            }
     }
 }

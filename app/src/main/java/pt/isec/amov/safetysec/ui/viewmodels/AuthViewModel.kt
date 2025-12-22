@@ -18,9 +18,26 @@ class AuthViewModel : ViewModel() {
     fun login(email: String, pass: String, onSuccess: () -> Unit) {
         isLoading.value = true
         errorMessage.value = null
+
         authUtil.login(email, pass) { success, error ->
-            isLoading.value = false
-            if (success) onSuccess() else errorMessage.value = error
+            if (success) {
+                val idUtilizador = authUtil.currentUser?.uid
+                if (idUtilizador != null) {
+                    authUtil.getUserData(idUtilizador) { user ->
+                        isLoading.value = false
+                        if (user != null) {
+                            userType.value = user.type
+                            onSuccess()
+                        } else {
+                            errorMessage.value = "Erro: Dados de utilizador não encontrados."
+                            authUtil.logout()
+                        }
+                    }
+                }
+            } else {
+                isLoading.value = false
+                errorMessage.value = error
+            }
         }
     }
 
