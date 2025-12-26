@@ -7,8 +7,6 @@ import kotlin.random.Random
 class FirestoreManager {
     private val db = FirebaseFirestore.getInstance()
 
-    // --- FUNÇÕES DO MONITOR ---
-
     // Gera um código aleatório (ex: 12345) e guarda na coleção "Associations"
     fun generateAssociationCode(monitorId: String, onResult: (String?) -> Unit) {
         val code = Random.nextInt(10000, 99999).toString()
@@ -29,22 +27,18 @@ class FirestoreManager {
             }
     }
 
-    // --- FUNÇÕES DO PROTEGIDO ---
-
     // Recebe o código (ex: "12345") e tenta ligar ao Monitor
     fun associateProtegido(code: String, idProtegido: String, onResult: (Boolean, String?) -> Unit) {
-        // 1. Procura o código na tabela de Associações
+        // Procura o código na tabela de Associações
         db.collection("Associations").document(code).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // 2. Encontrámos! Quem é o monitor?
                     val idMonitor = document.getString("monitorId")
 
                     if (idMonitor != null) {
-                        // 3. Atualizar o perfil do Protegido com o ID do Monitor
+                        //Atualizar o perfil do Protegido com o ID do Monitor
                         addAssociationToUser(idProtegido, idMonitor, onResult)
 
-                        // Opcional: Também podíamos adicionar o Protegido à lista do Monitor aqui
                         addAssociationToUser(idMonitor, idProtegido) { _, _ -> }
                     } else {
                         onResult(false, "Código inválido (sem monitor associado).")
@@ -57,8 +51,6 @@ class FirestoreManager {
                 onResult(false, "Erro ao validar código.")
             }
     }
-
-    // Função auxiliar genérica: Adiciona um ID à lista "associatedUsers" de qualquer utilizador
     private fun addAssociationToUser(userId: String, otherUserId: String, onResult: (Boolean, String?) -> Unit) {
         db.collection("Users").document(userId)
             .update("associatedUsers", FieldValue.arrayUnion(otherUserId))
@@ -67,6 +59,55 @@ class FirestoreManager {
             }
             .addOnFailureListener { e ->
                 onResult(false, "Erro ao guardar associação: ${e.message}")
+            }
+    }
+    fun createSOSAlert(protegidoId: String, onResult: (Boolean) -> Unit) {
+        val alertData = hashMapOf(
+            "protegidoId" to protegidoId,
+            "type" to "SOS",
+            "timestamp" to com.google.firebase.Timestamp.now(),
+            "location" to null,
+            "solved" to false
+        )
+
+        db.collection("Alerts").add(alertData)
+            .addOnSuccessListener {
+                onResult(true)
+            }
+            .addOnFailureListener {
+                onResult(false)
+            }
+    }
+    fun getMonitorAssociatedUsers(monitorId: String, onResult: (List<String>) -> Unit) {
+        db.collection("Users").document(monitorId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val list = document.get("associatedUsers") as? List<String> ?: emptyList()
+                    onResult(list)
+                } else {
+                    onResult(emptyList())
+                }
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    fun listenForAlerts(protegidosIds: List<String>, onAlertsReceived: (List<pt.isec.amov.safetysec.model.Alert>) -> Unit) {
+        if (protegidosIds.isEmpty()) {
+            onAlertsReceived(emptyList())
+            return
+        }
+        db.collection("Alerts")
+            .whereIn("protegidoId", protegidosIds)
+            .whereEqualTo("solved", false)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                val alerts = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(pt.isec.amov.safetysec.model.Alert::class.java)?.copy(id = doc.id)
+                }
+                onAlertsReceived(alerts)
             }
     }
 }

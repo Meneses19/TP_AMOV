@@ -77,9 +77,12 @@ fun ProtegidoDashboard(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Botão SOS (Fica para a próxima fase)
+        // Botão SOS
         Button(
-            onClick = { /* SOS */ },
+            onClick = {
+                viewModel.sendSOS()
+                Toast.makeText(context, "ALERTA ENVIADO!", Toast.LENGTH_SHORT).show()
+            },
             modifier = Modifier.size(150.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {

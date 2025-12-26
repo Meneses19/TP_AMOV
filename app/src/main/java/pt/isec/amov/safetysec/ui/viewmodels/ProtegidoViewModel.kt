@@ -9,12 +9,10 @@ class ProtegidoViewModel : ViewModel() {
     private val authUtil = FAuthUtil()
     private val firestoreManager = FirestoreManager()
 
-    // Estados
     var isLoading = mutableStateOf(false)
     var error = mutableStateOf<String?>(null)
     var success = mutableStateOf(false)
 
-    // Envia o código para ligar ao Monitor
     fun associateWithMonitor(code: String) {
         val idUtilizador = authUtil.currentUser?.uid
 
@@ -33,7 +31,21 @@ class ProtegidoViewModel : ViewModel() {
             }
         }
     }
+    fun sendSOS() {
+        val idUtilizador = authUtil.currentUser?.uid
+        if (idUtilizador != null) {
+            isLoading.value = true
 
+            firestoreManager.createSOSAlert(idUtilizador) { success ->
+                isLoading.value = false
+                if (success) {
+                    android.util.Log.d("ProtegidoViewModel", "SOS enviado!")
+                } else {
+                    error.value = "Falha ao enviar SOS."
+                }
+            }
+        }
+    }
     fun logout() {
         authUtil.logout()
     }
