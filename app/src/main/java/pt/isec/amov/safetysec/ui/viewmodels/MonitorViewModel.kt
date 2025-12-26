@@ -2,9 +2,9 @@ package pt.isec.amov.safetysec.ui.viewmodels
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import pt.isec.amov.safetysec.model.Alert
 import pt.isec.amov.safetysec.utils.FAuthUtil
 import pt.isec.amov.safetysec.utils.FirestoreManager
-import pt.isec.amov.safetysec.model.Alert
 
 class MonitorViewModel : ViewModel() {
     private val authUtil = FAuthUtil()
