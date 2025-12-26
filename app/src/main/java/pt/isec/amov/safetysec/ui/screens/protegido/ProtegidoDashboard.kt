@@ -1,24 +1,33 @@
-package pt.isec.amov.safetysec.ui.screens.protegido
+package pt.isec.amov.safetysec.ui.screens.protegido // Confirma se o package está certo
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import pt.isec.amov.safetysec.ui.viewmodels.ProtegidoViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProtegidoDashboard(
     navController: NavController,
-    viewModel: ProtegidoViewModel = viewModel() // Cria o ViewModel automaticamente
+    viewModel: ProtegidoViewModel = viewModel()
 ) {
     var codeInput by remember { mutableStateOf("") }
     val isLoading = viewModel.isLoading.value
@@ -26,76 +35,143 @@ fun ProtegidoDashboard(
     val success = viewModel.success.value
     val context = LocalContext.current
 
-    // Mostra Toast quando a associação funciona
+    // Feedback visual de sucesso
     LaunchedEffect(success) {
         if (success) {
-            Toast.makeText(context, "Conectado ao Monitor com sucesso!", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "✅ Conectado ao Monitor com sucesso!", Toast.LENGTH_LONG).show()
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Modo PROTEGIDO", style = MaterialTheme.typography.headlineLarge)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // CAIXA PARA INSERIR CÓDIGO
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Vincular a um Monitor", style = MaterialTheme.typography.titleMedium)
-                Text("Insira o código que o Monitor lhe deu:", style = MaterialTheme.typography.bodySmall)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = codeInput,
-                    onValueChange = { codeInput = it },
-                    label = { Text("Código (ex: 12345)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                if (error != null) {
-                    Text(error, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Modo Protegido", fontWeight = FontWeight.Bold)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+                actions = {
+                    IconButton(onClick = {
+                        viewModel.logout()
+                        navController.navigate("login") { popUpTo(0) }
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Sair"
+                        )
+                    }
                 }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween // Espalha os elementos
+        ) {
 
-                Spacer(modifier = Modifier.height(8.dp))
+            // --- ZONA SUPERIOR: INSTRUÇÃO ---
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "Em caso de emergência",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Gray
+                )
+                Text(
+                    "Pressione o botão abaixo",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
 
-                Button(
-                    onClick = { viewModel.associateWithMonitor(codeInput) },
-                    enabled = !isLoading && codeInput.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                    else Text("Vincular")
+            // --- ZONA CENTRAL: BOTÃO SOS GIGANTE ---
+            Button(
+                onClick = {
+                    viewModel.sendSOS()
+                    Toast.makeText(context, "🚨 ALERTA ENVIADO!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier
+                    .size(220.dp) // Tamanho grande
+                    .padding(16.dp),
+                shape = CircleShape, // Redondo
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F), // Vermelho forte
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 10.dp,
+                    pressedElevation = 2.dp
+                )
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = "SOS",
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        "SOS",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(48.dp))
+            // --- ZONA INFERIOR: ASSOCIAÇÃO ---
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(2.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Link, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Vincular Monitor", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Insira o código fornecido pelo Monitor:", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
 
-        // Botão SOS
-        Button(
-            onClick = {
-                viewModel.sendSOS()
-                Toast.makeText(context, "ALERTA ENVIADO!", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.size(150.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-        ) {
-            Text("SOS", style = MaterialTheme.typography.headlineLarge)
-        }
+                    Spacer(modifier = Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
+                    OutlinedTextField(
+                        value = codeInput,
+                        onValueChange = { codeInput = it },
+                        label = { Text("Código (ex: 12345)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        shape = CircleShape // Bordas arredondadas
+                    )
 
-        OutlinedButton(onClick = {
-            viewModel.logout()
-            navController.navigate("login") { popUpTo(0) }
-        }) {
-            Text("Sair")
+                    if (error != null) {
+                        Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { viewModel.associateWithMonitor(codeInput) },
+                        enabled = !isLoading && codeInput.isNotEmpty(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                        } else {
+                            Text("Conectar")
+                        }
+                    }
+                }
+            }
         }
     }
 }
